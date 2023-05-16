@@ -6,13 +6,14 @@
 # It's set as a secure environment variable in the .travis.yml file
 GITHUB_ORG="pactflow"
 PACTICIPANT="pactflow-example-consumer"
+PACT_BROKER_BASE_URL=http://35.175.20.146
 GITHUB_WEBHOOK_UUID := "04510dc1-7f0a-4ed2-997d-114bfa86f8ad"
 PACT_CLI="docker run --rm -v ${PWD}:${PWD} -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN pactfoundation/pact-cli"
 
 .EXPORT_ALL_VARIABLES:
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 GIT_BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
-ENVIRONMENT?=production
+ENVIRONMENT?=test
 
 # Only deploy from master (to production env) or test (to test env)
 ifeq ($(GIT_BRANCH),master)
@@ -51,7 +52,7 @@ publish_pacts: .env
 ## Build/test tasks
 ## =====================
 
-test: .env
+test:
 	@echo "\n========== STAGE: test (pact) ==========\n"
 	npm run test:pact
 
@@ -72,9 +73,9 @@ can_i_deploy: .env
 	@"${PACT_CLI}" broker can-i-deploy \
 	  --pacticipant ${PACTICIPANT} \
 	  --version ${GIT_COMMIT} \
-	  --to-environment ${ENVIRONMENT} \
-	  --retry-while-unknown 30 \
-	  --retry-interval 10
+	  --retry-while-unknown 5 \
+	  --retry-interval 10 \
+	  --to-environment production \
 
 deploy_app:
 	@echo "\n========== STAGE: deploy ==========\n"
